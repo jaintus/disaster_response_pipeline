@@ -1,5 +1,7 @@
 # Disaster Response Pipeline Project
 
+Github Link: https://github.com/jaintus/disaster_response_pipeline
+
 #### A pipeline that analyzes and categorizes messages sent during disaster events.  The project consists of an ETL and ML pipeline.  
 
 #### The ETL pipeline can be found in the `data/process_data.py` file and it handles the following tasks:
