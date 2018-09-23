@@ -1,10 +1,12 @@
 import sys
+import re
 import nltk
 import string
 import pickle
 import pandas as pd
 from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -18,7 +20,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
-def load_data(database_filepath):
+def load_split_data(database_filepath):
     """
     Load data and split into X and Y
     Args:
@@ -48,14 +50,17 @@ def tokenize(text):
     Returns:
         word_tokens: list of tokens
     """
-    word_tokens = []
-    sw = stopwords.words('english') + list(string.punctuation)
-    for word in word_tokenize(text.lower()):
-        if word not in sw:
-            word_tokens.append(word)
+    text = re.sub(r"[^A-Za-z]", " ", text)  
+    tokens = word_tokenize(text)
+    # Remove stop words
+    tokens = [word for word in tokens if word not in stopwords.words('english')]
+    lemmatizer = WordNetLemmatizer()
 
-    return word_tokens
-
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+    return clean_tokens
 
 def build_model():
     """
@@ -106,10 +111,18 @@ def save_model(model, model_filepath):
 
 
 def main():
+    """
+        The ML pipeline:
+            * Splits the dataset into training and test sets
+            * Builds a text processing and machine learning pipeline
+            * Trains and tunes a model using GridSearchCV
+            * Outputs results on the test set
+            * Exports your final model as a pickle file
+    """
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
+        X, Y, category_names = load_split_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(
             X, Y, test_size=0.2)
 
